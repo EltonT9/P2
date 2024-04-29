@@ -13,7 +13,7 @@ Resources:
     Properties:
       Location: ./api.yaml
       Parameters: 
-        !GetAtt DynamoDBStack.Outputs.Project2DynamoDBTableArn
-        !GetAtt DynamoDBStack.Outputs.TableName
+        Project2DynamoDBTableArn: !GetAtt DynamoDBStack.Outputs.Project2DynamoDBTableArn
+        TableName: !GetAtt DynamoDBStack.Outputs.TableName
       
     
