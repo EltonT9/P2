@@ -17,9 +17,10 @@ Resources:
       StageName: 
         Ref: Environment
       Cors:
-        AllowMethods: 'GET, POST, DELETE'
-        AllowHeaders: 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'
-        AllowOrigin: "'*'"
+        AllowMethods: '''POST, GET, DELETE, PUT'''
+        AllowHeaders: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'''
+        AllowOrigin: '''*'''
+        MaxAge: '''600'''
   Project2Get:
     Type: AWS::Serverless::Function
     Properties:
