@@ -5,6 +5,9 @@ Parameters:
     Type: String
   TableName: 
     Type: String
+  Environment:
+    Type: String
+    Default: dev
 
 Resources: 
   Project2ApiGatewayRestApi:
