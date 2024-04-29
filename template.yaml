@@ -1,0 +1,19 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Project 2 Serverless Architecture
+
+Resources: 
+  DynamoDBStack:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: ./dynamodb.yaml
+
+  ApiGatewayStack:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: ./api.yaml
+      Parameters: 
+        !GetAtt DynamoDBStack.Outputs.Project2DynamoDBTableArn
+        !GetAtt DynamoDBStack.Outputs.TableName
+      
+    

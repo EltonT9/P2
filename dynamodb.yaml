@@ -1,0 +1,37 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Parameters: 
+  TableName: 
+    Type: String
+    Default: ethomas-p2-db
+
+Resources:
+  Project2DynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Ref TableName 
+      AttributeDefinitions:
+      - AttributeName: movieId
+        AttributeType: S
+      - AttributeName: title
+        AttributeType: S
+      KeySchema:
+      - AttributeName: movieId
+        KeyType: HASH
+      - AttributeName: title
+        KeyType: RANGE
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      Tags:
+        - Key: Environment
+
+Outputs:
+  Project2DynamoDBTableArn:
+    Value: !GetAtt Project2DynamoDBTable.Arn
+    Export:
+      Name: Project2DynamoDBTableArn
+  TableName:
+    Value: !Ref TableName
+    Export:
+      Name: TableName

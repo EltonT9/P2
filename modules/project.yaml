@@ -1,0 +1,167 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Project 2 Serverless Architecture
+Parameters:
+  ProjectName:
+    Type: String
+    Default: ethomas-p2
+  Environment:
+    Type: String
+    Default: dev
+  CloudFrontAliasDomain:
+    Type: String
+    Default: Domain Alias for CloudFront
+Resources:
+  Project2ApiGatewayRestApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub ${ProjectName}-${Environment}-api
+      StageName: !Ref Environment
+      DefinitionBody:
+        swagger: '2.0'
+        info:
+          title: !Sub ${ProjectName}-${Environment}-api
+        paths:
+          /movies:
+            post:
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${Project2PostLambdaFunction.Arn}/invocations
+            delete:
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${Project2DeleteLambdaFunction.Arn}/invocations
+            get:
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${Project2PostLambdaFunction.Arn}/invocations
+      Cors:
+        AllowMethods: 'GET, POST, DELETE'
+        AllowHeaders: 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'
+        AllowOrigin: '*'
+  Project2DynamoDBTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      TableName: !Sub ${ProjectName}-${Environment}
+      PrimaryKey:
+        Name: movieId
+        Type: String
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/LambdaExecutionRole'
+      Policies:
+        - PolicyName: DynamoDbReadWritePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:PutItem
+                  - dynamodb:DeleteItem
+                  - dynamodb:GetItem
+                  - dynamodb:Scan
+                Resource: !GetAtt Project2DynamoDBTable.Arn
+  Project2Get:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${ProjectName}-${Environment}-get
+      CodeUri: ./
+      Handler: read-movies.handler
+      Runtime: nodejs18.x
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref Project2DynamoDBTable
+      Events:
+        ViewAllMovies:
+          Type: Api
+          Properties:
+            Path: /movies
+            Method: GET
+            RestApiId: !Ref Project2ApiGatewayRestApi
+  Project2Post:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${ProjectName}-${Environment}-post
+      CodeUri: ./
+      Handler: create_movie.lambda_handler
+      Runtime: python3.11
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref Project2DynamoDBTable
+      Events:
+        CreateMovie:
+          Type: Api
+          Properties:
+            Path: /movies
+            Method: POST
+            RestApiId: !Ref Project2ApiGatewayRestApi
+  Project2Delete:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${ProjectName}-${Environment}-delete
+      CodeUri: ./
+      Handler: create_movie.lambda_handler
+      Runtime: python3.11
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref Project2DynamoDBTable
+      Events:
+        DeleteMovie:
+          Type: Api
+          Properties:
+            Path: /movies
+            Method: DELETE
+            RestApiId: !Ref Project2ApiGatewayRestApi
+  CloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        Aliases:
+          - !Ref CloudFrontAliasDomain
+        Origins:
+          - DomainName: !Sub "${ProjectName}-${Environment}.execute-api.${AWS::Region}.amazonaws.com"
+            Id: ApiGatewayOrigin
+            CustomOriginConfig:
+              HTTPPort: 80
+              HTTPSPort: 443
+              OriginProtocolPolicy: https-only
+              OriginSSLProtocols:
+                - TLSv1.2
+        DefaultCacheBehavior:
+          TargetOriginId: ApiGatewayOrigin
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods:
+            - GET
+            - POST
+            - DELETE
+          CachedMethods:
+            - GET
+          ForwardedValues:
+            QueryString: true
+            Cookies:
+              Forward: none
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: true
+Outputs:
+  ApiGatewayUrl:
+    Description: API URL
+    Value: !Sub https://${Project2ApiGatewayRestApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/
