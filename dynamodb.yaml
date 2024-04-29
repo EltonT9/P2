@@ -25,6 +25,7 @@ Resources:
         WriteCapacityUnits: 5
       Tags:
         - Key: Environment
+          Value: dev
 
 Outputs:
   Project2DynamoDBTableArn:
