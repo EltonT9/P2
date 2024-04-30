@@ -14,7 +14,7 @@ def lambda_handler(event, context):
     movie_id = json.loads(event['body'])['movieId']  # Extract movieId from the event
 
     # Table name
-    table_name = 'ethomas-p2-dev'
+    table_name = 'ethomas-p2-db'
 
     # Delete table entry
     try:

@@ -3,7 +3,7 @@ import { DynamoDBDocument } from '@aws-sdk/lib-dynamodb';
 
 const db = new DynamoDBClient({ region: 'us-east-1' });
 
-const TABLE_NAME = 'ethomas-p2-dev'; 
+const TABLE_NAME = 'ethomas-p2-db'; 
 
 const findAllMovies = async () => {
     const params = {

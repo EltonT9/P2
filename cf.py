@@ -1,8 +1,19 @@
 import boto3
 
-def create_cloudfront_distribution(s3_origin_domain):
+def create_cloudfront_distribution(bucket_name):
     cloudfront_client = boto3.client('cloudfront')
 
+    # Origin Access Identity
+    oai_response = cloudfront_client.create_cloud_front_origin_access_identity(
+        CloudFrontOriginAccessIdentityConfig={
+            'CallerReference': 'ethomas-p2-OAI',
+            'Comment': 'OAI for ethomas-p2 project'
+        }
+    )
+    origin_access_identity_id = oai_response['CloudFrontOriginAccessIdentity']['Id']
+    origin_access_identity_path = f'origin-access-identity/cloudfront/{origin_access_identity_id}'
+
+    # Distribution configuration 
     distribution_config = {
         'CallerReference': 'ethomas-p2',
         'Comment': 'CloudFront Distribution for ethomas-p2 project',
@@ -11,8 +22,10 @@ def create_cloudfront_distribution(s3_origin_domain):
             'Quantity': 1,
             'Items': [{
                 'Id': 'ethomas-p2-S3Origin',
-                'DomainName': s3_origin_domain,
-                'S3OriginConfig': {'OriginAccessIdentity': ''}
+                'DomainName': f'{bucket_name}.s3.amazonaws.com',  # Adjust for correct S3 bucket domain
+                'S3OriginConfig': {
+                    'OriginAccessIdentity': origin_access_identity_path
+                }
             }]
         },
         'DefaultCacheBehavior': {
@@ -33,17 +46,17 @@ def create_cloudfront_distribution(s3_origin_domain):
             'MaxTTL': 31536000,
         },
         'ViewerCertificate': {
-            'CloudFrontDefaultCertificate': True,
-            'MinimumProtocolVersion': 'TLSv1.2_2019'
+            'ACMCertificateArn': 'arn:aws:acm:us-east-1:785169158894:certificate/ddf9372e-77f0-4d27-96a7-b57c44b0f20a',
+            'SSLSupportMethod': 'sni-only',
+            'MinimumProtocolVersion': 'TLSv1.2_2021'
         }
     }
 
     try:
         response = cloudfront_client.create_distribution(DistributionConfig=distribution_config)
         return response['Distribution']
-    except boto3.exceptions.Boto3Error:
-        return None
+    except boto3.exceptions.Boto3Error as e:
+        return {'Error': str(e)}
 
-distribution = create_cloudfront_distribution('ethomas-p2.s3.amazonaws.com')
-
-
+# Assuming your bucket name is 'ethomas-p2'
+distribution = create_cloudfront_distribution('ethomas-p2')

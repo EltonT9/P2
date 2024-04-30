@@ -1,3 +1,4 @@
+import React from 'react';
 import { render } from 'react-dom';
 import { StyleProvider } from './providers/StyleProvider';
 import { App } from './App';

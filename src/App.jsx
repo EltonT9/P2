@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Grid, Typography } from '@mui/material';
 import Header, { Title, Body } from './components/Header';
 import { Movie as MovieCard } from './components/Cards';

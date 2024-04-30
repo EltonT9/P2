@@ -1,3 +1,4 @@
+import React from 'react';
 import { Typography, Box, styled } from '@mui/material';
 import { Title as _Title } from './Title';
 import { Body as _Body } from './Body';

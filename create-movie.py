@@ -1,7 +1,7 @@
 import json
 import boto3
 
-TABLE_NAME = 'ethomas-p2-dev'
+TABLE_NAME = 'ethomas-p2-db'
 
 def lambda_handler(event, context):
     db = boto3.client('dynamodb')

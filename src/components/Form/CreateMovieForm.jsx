@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Grid, Button, TextField } from '@mui/material';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
@@ -30,7 +30,7 @@ export const CreateMovieForm = ({setMovies}) => {
     }
 
     const handleClear = e => {
-        e?.preventDefault();
+        e.preventDefault();
         setMovieData({
             title: '',
             director: '',

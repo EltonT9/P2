@@ -1,3 +1,4 @@
+import React from 'react';
 import { Grid, CardContent } from '@mui/material';
 
 export const Body = ({children, ...props}) => {
